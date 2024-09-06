@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man Simples</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+        }
+        canvas {
+            display: block;
+            background: #000;
+            margin: 0 auto;
+        }
+        .controls {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .button {
+            width: 60px;
+            height: 60px;
+            background: #555;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="controls">
+        <div class="button" id="up">↑</div>
+        <div class="button" id="left">←</div>
+        <div class="button" id="down">↓</div>
+        <div class="button" id="right">→</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const canvasSize = 400;
+        canvas.width = canvasSize;
+        canvas.height = canvasSize;
+
+        let pacMan = {
+            x: canvasSize / 2,
+            y: canvasSize / 2,
+            radius: 20,
+            speed: 2,
+            dx: 0,
+            dy: 0
+        };
+
+        function drawPacMan() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(pacMan.x, pacMan.y, pacMan.radius, 0.2 * Math.PI, 1.8 * Math.PI); // Pac-Man's mouth
+            ctx.lineTo(pacMan.x, pacMan.y); // To center
+            ctx.closePath();
+            ctx.fillStyle = 'yellow';
+            ctx.fill();
+        }
+
+        function update() {
+            pacMan.x += pacMan.dx;
+            pacMan.y += pacMan.dy;
+
+            // Wall collision detection
+            if (pacMan.x - pacMan.radius < 0) pacMan.x = pacMan.radius;
+            if (pacMan.x + pacMan.radius > canvas.width) pacMan.x = canvas.width - pacMan.radius;
+            if (pacMan.y - pacMan.radius < 0) pacMan.y = pacMan.radius;
+            if (pacMan.y + pacMan.radius > canvas.height) pacMan.y = canvas.height - pacMan.radius;
+
+            drawPacMan();
+        }
+
+        function handleButtonPress(direction) {
+            switch (direction) {
+                case 'up':
+                    pacMan.dx = 0;
+                    pacMan.dy = -pacMan.speed;
+                    break;
+                case 'down':
+                    pacMan.dx = 0;
+                    pacMan.dy = pacMan.speed;
+                    break;
+                case 'left':
+                    pacMan.dx = -pacMan.speed;
+                    pacMan.dy = 0;
+                    break;
+                case 'right':
+                    pacMan.dx = pacMan.speed;
+                    pacMan.dy = 0;
+                    break;
+            }
+        }
+
+        document.getElementById('up').addEventListener('touchstart', () => handleButtonPress('up'));
+        document.getElementById('down').addEventListener('touchstart', () => handleButtonPress('down'));
+        document.getElementById('left').addEventListener('touchstart', () => handleButtonPress('left'));
+        document.getElementById('right').addEventListener('touchstart', () => handleButtonPress('right'));
+
+        document.addEventListener('touchend', () => {
+            pacMan.dx = 0;
+            pacMan.dy = 0;
+        });
+
+        // Game loop
+        setInterval(update, 1000 / 60); // 60 FPS
+    </script>
+</body>
+</html>
