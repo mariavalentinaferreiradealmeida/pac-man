@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,115 +8,117 @@
         body {
             margin: 0;
             overflow: hidden;
-            background: #000;
+            background-color: #000;
         }
-        canvas {
+        #gameCanvas {
+            border: 2px solid #fff;
             display: block;
-            background: #000;
             margin: 0 auto;
         }
         .controls {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
             display: flex;
-            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
         }
         .button {
-            width: 60px;
-            height: 60px;
-            background: #555;
+            background: #333;
             color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
             cursor: pointer;
+        }
+        .button:active {
+            background: #555;
+        }
+        .button:disabled {
+            background: #777;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div class="controls">
-        <div class="button" id="up">↑</div>
-        <div class="button" id="left">←</div>
-        <div class="button" id="down">↓</div>
-        <div class="button" id="right">→</div>
+        <button class="button" id="left">←</button>
+        <button class="button" id="up">↑</button>
+        <button class="button" id="down">↓</button>
+        <button class="button" id="right">→</button>
     </div>
-
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const canvasSize = 400;
-        canvas.width = canvasSize;
-        canvas.height = canvasSize;
-
-        let pacMan = {
-            x: canvasSize / 2,
-            y: canvasSize / 2,
-            radius: 20,
-            speed: 2,
-            dx: 0,
-            dy: 0
-        };
+        const gridSize = 20;
+        const pacSize = gridSize - 2;
+        let pacX = Math.floor(canvas.width / 2 / gridSize) * gridSize;
+        let pacY = Math.floor(canvas.height / 2 / gridSize) * gridSize;
 
         function drawPacMan() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.beginPath();
-            ctx.arc(pacMan.x, pacMan.y, pacMan.radius, 0.2 * Math.PI, 1.8 * Math.PI); // Pac-Man's mouth
-            ctx.lineTo(pacMan.x, pacMan.y); // To center
-            ctx.closePath();
+            ctx.arc(pacX + pacSize / 2, pacY + pacSize / 2, pacSize / 2, 0.2 * Math.PI, 1.8 * Math.PI);
+            ctx.lineTo(pacX + pacSize / 2, pacY + pacSize / 2);
             ctx.fillStyle = 'yellow';
             ctx.fill();
+            ctx.closePath();
         }
 
-        function update() {
-            pacMan.x += pacMan.dx;
-            pacMan.y += pacMan.dy;
-
-            // Wall collision detection
-            if (pacMan.x - pacMan.radius < 0) pacMan.x = pacMan.radius;
-            if (pacMan.x + pacMan.radius > canvas.width) pacMan.x = canvas.width - pacMan.radius;
-            if (pacMan.y - pacMan.radius < 0) pacMan.y = pacMan.radius;
-            if (pacMan.y + pacMan.radius > canvas.height) pacMan.y = canvas.height - pacMan.radius;
-
+        function movePacMan(dx, dy) {
+            pacX += dx;
+            pacY += dy;
+            pacX = Math.max(0, Math.min(canvas.width - pacSize, pacX));
+            pacY = Math.max(0, Math.min(canvas.height - pacSize, pacY));
             drawPacMan();
         }
 
-        function handleButtonPress(direction) {
-            switch (direction) {
-                case 'up':
-                    pacMan.dx = 0;
-                    pacMan.dy = -pacMan.speed;
+        function handleKey(e) {
+            switch (e.key) {
+                case 'ArrowLeft':
+                    movePacMan(-gridSize, 0);
                     break;
-                case 'down':
-                    pacMan.dx = 0;
-                    pacMan.dy = pacMan.speed;
+                case 'ArrowUp':
+                    movePacMan(0, -gridSize);
                     break;
-                case 'left':
-                    pacMan.dx = -pacMan.speed;
-                    pacMan.dy = 0;
+                case 'ArrowRight':
+                    movePacMan(gridSize, 0);
                     break;
-                case 'right':
-                    pacMan.dx = pacMan.speed;
-                    pacMan.dy = 0;
+                case 'ArrowDown':
+                    movePacMan(0, gridSize);
                     break;
             }
         }
 
-        document.getElementById('up').addEventListener('touchstart', () => handleButtonPress('up'));
-        document.getElementById('down').addEventListener('touchstart', () => handleButtonPress('down'));
-        document.getElementById('left').addEventListener('touchstart', () => handleButtonPress('left'));
-        document.getElementById('right').addEventListener('touchstart', () => handleButtonPress('right'));
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const x = touch.clientX - canvas.offsetLeft;
+            const y = touch.clientY - canvas.offsetTop;
 
-        document.addEventListener('touchend', () => {
-            pacMan.dx = 0;
-            pacMan.dy = 0;
-        });
+            const dx = x < pacX + pacSize / 2 ? -gridSize : (x > pacX + pacSize / 2 ? gridSize : 0);
+            const dy = y < pacY + pacSize / 2 ? -gridSize : (y > pacY + pacSize / 2 ? gridSize : 0);
 
-        // Game loop
-        setInterval(update, 1000 / 60); // 60 FPS
+            movePacMan(dx, dy);
+        }
+
+        document.getElementById('left').addEventListener('click', () => movePacMan(-gridSize, 0));
+        document.getElementById('up').addEventListener('click', () => movePacMan(0, -gridSize));
+        document.getElementById('right').addEventListener('click', () => movePacMan(gridSize, 0));
+        document.getElementById('down').addEventListener('click', () => movePacMan(0, gridSize));
+
+        canvas.addEventListener('touchstart', handleTouch);
+
+        window.addEventListener('keydown', handleKey);
+
+        drawPacMan();
     </script>
 </body>
 </html>
+
+            
+
+
+
+
+         
+
